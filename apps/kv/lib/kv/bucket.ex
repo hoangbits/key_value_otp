@@ -4,10 +4,10 @@ defmodule KV.Bucket do
   end
 
   def get(agent, key) do
-    Agent.get(agent, fn map -> Map.get(map, key) end)
+    Agent.get(agent, &Map.get(&1, key))
   end
 
   def put(agent, key , value) do
-    Agent.update(agent, fn map -> Map.put(map, key, value) end)
+    Agent.update(agent, &Map.put(&1, key, value))
   end
 end
