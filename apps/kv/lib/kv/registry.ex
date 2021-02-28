@@ -28,8 +28,10 @@ defmodule KV.Registry do
   ## GenSerger
   @impl true
   def init(:ok) do
-    names = %{} # contains name -> pid of bucket
-    refs = %{} #contains ref -> name
+    # contains name -> pid of bucket
+    names = %{}
+    # contains ref -> name
+    refs = %{}
     {:ok, {names, refs}}
   end
 
@@ -53,7 +55,7 @@ defmodule KV.Registry do
     end
   end
 
-  @impt true
+  @impl true
   def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
     # get name of ref
     {name, refs} = Map.pop(refs, ref)
@@ -67,6 +69,4 @@ defmodule KV.Registry do
   def handle_info(_msg, state) do
     {:noreply, state}
   end
-
-
 end

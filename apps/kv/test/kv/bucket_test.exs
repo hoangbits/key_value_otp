@@ -1,7 +1,6 @@
 defmodule KV.BucketTest do
   use ExUnit.Case, async: true
 
-
   setup do
     bucket = start_supervised!(KV.Bucket)
     %{bucket: bucket}
@@ -19,5 +18,4 @@ defmodule KV.BucketTest do
     assert KV.Bucket.delete(bucket, "oil") == 2
     assert KV.Bucket.delete(bucket, "does-exist-key") == nil
   end
-
 end

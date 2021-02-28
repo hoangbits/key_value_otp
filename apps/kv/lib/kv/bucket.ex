@@ -1,10 +1,11 @@
 defmodule KV.Bucket do
   use Agent
+
   @doc """
     Starts a new bucket.
   """
   def start_link(_) do
-    Agent.start_link fn -> %{} end
+    Agent.start_link(fn -> %{} end)
   end
 
   @doc """
@@ -17,7 +18,7 @@ defmodule KV.Bucket do
   @doc """
   Puts the value for the given `key` in the `bucket`
   """
-  def put(agent, key , value) do
+  def put(agent, key, value) do
     Agent.update(agent, &Map.put(&1, key, value))
   end
 
