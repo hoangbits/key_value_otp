@@ -28,21 +28,45 @@ defmodule KV.Registry do
   ## GenSerger
   @impl true
   def init(:ok) do
-    {:ok, %{}}
+    names = %{} # contains name -> pid of bucket
+    refs = %{} #contains ref -> name
+    {:ok, {names, refs}}
   end
 
   @impl true
-  def handle_call({:lookup, name}, _from, names) do
-    {:reply, Map.fetch(names, name), names}
+  def handle_call({:lookup, name}, _from, state) do
+    {names, _} = state
+    {:reply, Map.fetch(names, name), state}
   end
 
+  # for didactic purposes.
   @impl true
-  def handle_cast({:create, name}, names) do
+  def handle_cast({:create, name}, {names, refs}) do
     if Map.has_key?(names, name) do
-      {:noreply, names}
+      {:noreply, {names, refs}}
     else
       {:ok, bucket} = KV.Bucket.start_link([])
-      {:noreply, Map.put(names, name, bucket)}
+      ref = Process.monitor(bucket)
+      refs = Map.put(refs, ref, name)
+      names = Map.put(names, name, bucket)
+      {:noreply, {names, refs}}
     end
   end
+
+  @impt true
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
+    # get name of ref
+    {name, refs} = Map.pop(refs, ref)
+    # delete name inside registry
+    names = Map.delete(names, name)
+    # return state
+    {:noreply, {names, refs}}
+  end
+
+  @impl true
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
+
 end
