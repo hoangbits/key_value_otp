@@ -2,17 +2,12 @@ defmodule KV do
   @moduledoc """
   Documentation for `KV`.
   """
+  require Logger
+  use Application
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> KV.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  @impl true
+  def start(_type, _args) do
+    # using same name for is useful for debugging
+    KV.Supervisor.start_link(name: KV.Supervisor)
   end
 end
