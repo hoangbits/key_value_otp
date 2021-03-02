@@ -41,13 +41,13 @@ defmodule KV.Registry do
     {:reply, Map.fetch(names, name), state}
   end
 
-  # for didactic purposes.
+  # for didactic purposes when using handle_cast, it should be handle_call
   @impl true
   def handle_cast({:create, name}, {names, refs}) do
     if Map.has_key?(names, name) do
       {:noreply, {names, refs}}
     else
-      {:ok, bucket} = KV.Bucket.start_link([])
+      {:ok, bucket} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)
       ref = Process.monitor(bucket)
       refs = Map.put(refs, ref, name)
       names = Map.put(names, name, bucket)

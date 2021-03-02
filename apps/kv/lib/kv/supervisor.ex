@@ -8,9 +8,10 @@ defmodule KV.Supervisor do
   @impl true
   def init(:ok) do
     children = [
+      {DynamicSupervisor, name: KV.BucketSupervisor, strategy: :one_for_one},
       {KV.Registry, name: KV.Registry}
     ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    # Kill and restart all of its children whenever any one of them dies
+    Supervisor.init(children, strategy: :one_for_all)
   end
 end
