@@ -11,6 +11,7 @@ defmodule KV.Supervisor do
       {DynamicSupervisor, name: KV.BucketSupervisor, strategy: :one_for_one},
       {KV.Registry, name: KV.Registry}
     ]
+
     # Kill and restart all of its children whenever any one of them dies
     Supervisor.init(children, strategy: :one_for_all)
   end

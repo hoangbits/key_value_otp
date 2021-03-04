@@ -1,7 +1,7 @@
-"""
-Storing bucket pid inside ETS table which handle concurrent read better than current KV.Redistry GenServer
-"""
 defmodule KV.Registry do
+  @moduledoc """
+  Storing bucket pid inside ETS table which handle concurrent read better than current KV.Redistry GenServer
+  """
   use GenServer
   ## Client API, do later
 
@@ -13,7 +13,7 @@ defmodule KV.Registry do
   def start_link(opts) do
     # 1. Pass the name to GenServer's init
     server = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, :ok, opts)
+    GenServer.start_link(__MODULE__, server, opts)
   end
 
   @doc """
@@ -28,6 +28,7 @@ defmodule KV.Registry do
       [{^name, pid}] -> {:ok, pid}
       [] -> :error
     end
+
     # GenServer.call(server, {:lookup, name})
   end
 
@@ -35,13 +36,16 @@ defmodule KV.Registry do
   Ensures there is a bucket associated with the given `name` in `server`.
   """
   def create(server, name) do
-    GenServer.cast(server, {:create, name})
+    GenServer.call(server, {:create, name})
   end
 
-
   ## GenServer callbacks
+
+  @doc """
+  table: ETS server name receive from GenServer.start_link
+  """
   @impl true
-  def init(:ok) do
+  def init(table) do
     # contains name -> pid of bucket
     # names = %{}
     # 3. Now we replaced the names map by the ETS table
@@ -60,30 +64,21 @@ defmodule KV.Registry do
 
   # for didactic purposes when using handle_cast, it should be handle_call
   @impl true
-  def handle_cast({:create, name}, {names, refs}) do
+  def handle_call({:create, name}, _from, {names, refs}) do
     # 5. Read and write to the ETS table instead of the map
     case lookup(names, name) do
       # when bucket pid already exist
       {:ok, pid} ->
-        {:noreply, {names, refs}}
+        {:reply, pid, {names, refs}}
+
       :error ->
         # otherwise
         {:ok, pid} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)
         ref = Process.monitor(pid)
-        refs = Maps.put(refs, ref, name)
-        names = :ets.insert(names, {name, pid})
-        {:noreply, {names, refs}}
+        refs = Map.put(refs, ref, name)
+        :ets.insert(names, {name, pid})
+        {:reply, pid, {names, refs}}
     end
-
-    # if Map.has_key?(names, name) do
-    #   {:noreply, {names, refs}}
-    # else
-    #   {:ok, bucket} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)
-    #   ref = Process.monitor(bucket)
-    #   refs = Map.put(refs, ref, name)
-    #   names = Map.put(names, name, bucket)
-    #   {:noreply, {names, refs}}
-    # end
   end
 
   @impl true

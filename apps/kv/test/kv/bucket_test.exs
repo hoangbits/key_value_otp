@@ -19,7 +19,7 @@ defmodule KV.BucketTest do
     assert KV.Bucket.delete(bucket, "does-exist-key") == nil
   end
 
-  test"bucket are temporary" do
+  test "bucket are temporary" do
     assert Supervisor.child_spec(KV.Bucket, []).restart == :temporary
   end
 end
