@@ -43,6 +43,8 @@ defmodule KV.Registry do
 
   @doc """
   table: ETS server name receive from GenServer.start_link
+  GenServer.start_link(__MODULE__, server, opts)
+  table === server above
   """
   @impl true
   def init(table) do
