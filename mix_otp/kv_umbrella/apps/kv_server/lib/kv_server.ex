@@ -80,6 +80,12 @@ defmodule KVServer do
     :gen_tcp.send(socket, "UNKNOWN COMMAND\r\n")
   end
 
+  defp write_line(socket, {:error, :not_found}) do
+    # When can't find bucket by id
+    :gen_tcp.send(socket, "NOT FOUND\r\n")
+  end
+
+  # error when one of cliens close connection. E.g:
   defp write_line(_socket, {:error, :closed}) do
     # The connection was closed, exit politely
     IO.puts("bye bye!")
